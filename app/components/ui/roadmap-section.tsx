@@ -403,7 +403,6 @@ function StageSection({
   );
 }
 
-
 export function RoadmapSection() {
   const { t, dir } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
