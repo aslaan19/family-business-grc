@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Clock,
@@ -43,17 +42,19 @@ export default function AssessmentPage() {
   ];
 
   const ctaButton = (label: string, large = false) => (
-    <button
-      className={`group w-full relative py-4 px-6 rounded-2xl bg-linear-to-l from-emerald-500 to-emerald-600 text-white font-bold ${large ? "text-lg" : ""} overflow-hidden shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-[1.02]`}
-    >
-      <span className="relative z-10 flex items-center justify-center gap-3">
-        {label}
-        <ArrowLeft
-          className={`w-5 h-5 ${dir === "ltr" ? "rotate-180" : ""} group-hover:-translate-x-1 transition-transform`}
-        />
-      </span>
-      <div className="absolute inset-0 bg-linear-to-l from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    </button>
+    <Link href="/assessment/Qs">
+      <button
+        className={`group w-full relative py-4 px-6 rounded-2xl bg-linear-to-l from-emerald-500 to-emerald-600 text-white font-bold ${large ? "text-lg" : ""} overflow-hidden shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-[1.02]`}
+      >
+        <span className="relative z-10 flex items-center justify-center gap-3">
+          {label}
+          <ArrowLeft
+            className={`w-5 h-5 ${dir === "ltr" ? "rotate-180" : ""} group-hover:-translate-x-1 transition-transform`}
+          />
+        </span>
+        <div className="absolute inset-0 bg-linear-to-l from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      </button>
+    </Link>
   );
 
   return (
@@ -194,6 +195,7 @@ export default function AssessmentPage() {
                     </div>
                     {ctaButton(
                       `${t("assessment.price")} - ${t("assessment.priceAmount")}`,
+                      false,
                     )}
                     <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
                       <Shield className="w-4 h-4 text-emerald-600" />

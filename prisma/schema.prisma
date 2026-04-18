@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  fullName    String
+  email       String   @unique
+  phone       String?
+  companyName String?
+  createdAt   DateTime @default(now())
+
+  submissions AssessmentSubmission[]
+
+  @@map("users")
+}
+
+model AssessmentQuestion {
+  id            String @id @default(uuid()) @db.Uuid
+  categoryKey   String
+  categoryOrder Int
+  questionOrder Int
+
+  titleAr String
+  titleEn String
+
+  questionAr String
+  questionEn String
+
+  descriptionAr String?
+  descriptionEn String?
+
+  createdAt DateTime @default(now())
+
+  answers AssessmentAnswer[]
+
+  @@unique([categoryKey, questionOrder])
+  @@index([categoryOrder, questionOrder])
+  @@map("assessment_questions")
+}
+
+model AssessmentSubmission {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  totalScore  Int
+  maxScore    Int?
+  rawPayload  Json?
+  submittedAt DateTime @default(now())
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers AssessmentAnswer[]
+
+  @@map("assessment_submissions")
+}
+
+model AssessmentAnswer {
+  id            String   @id @default(uuid()) @db.Uuid
+  submissionId  String   @db.Uuid
+  questionId    String   @db.Uuid
+  selectedLabel String?
+  selectedValue Int
+  note          String?
+  createdAt     DateTime @default(now())
+
+  submission AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question   AssessmentQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, questionId])
+  @@map("assessment_answers")
+}
