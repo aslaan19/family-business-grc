@@ -2,38 +2,41 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 
-/**
- * GET /api/admin/users
- * Returns all users with their submission + answers (including question text).
- */
 export async function GET() {
   try {
-const users = await prisma.user.findMany({
-  orderBy: { createdAt: "desc" },
-  include: {
-    submissions: {          // was: submission
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
       include: {
-        answers: {
-          include: { question: true },
-          orderBy: [
-            { question: { categoryOrder: "asc" } },
-            { question: { questionOrder: "asc" } },
-          ],
+        submissions: {
+          include: {
+            answers: {
+              include: { question: true },
+              orderBy: [
+                { question: { categoryOrder: "asc" } },
+                { question: { questionOrder: "asc" } },
+              ],
+            },
+          },
+          orderBy: { submittedAt: "asc" },
         },
       },
-    },
-  },
-});
+    });
 
-const formatted = users.map((u) => ({
-  id:           u.id,
-  name:         u.fullName,
-  email:        u.email,
-  phone:        u.phone ?? null,
-  organization: u.companyName ?? null,
-  createdAt:    u.createdAt,
-  submission:   u.submissions[0] ?? null,  // grab latest, already sorted desc
-}));
+    const formatted = users.map((u) => {
+      const sub1 = u.submissions.find((s) => s.submissionType === "assessment1") ?? null;
+      const sub2 = u.submissions.find((s) => s.submissionType === "assessment2") ?? null;
+
+      return {
+        id:           u.id,
+        name:         u.fullName,
+        email:        u.email,
+        phone:        u.phone        ?? null,
+        organization: u.companyName  ?? null,
+        createdAt:    u.createdAt,
+        submission:   sub1,   // kept for backward compat with admin page
+        submission2:  sub2,
+      };
+    });
 
     return NextResponse.json({ users: formatted });
   } catch (err) {

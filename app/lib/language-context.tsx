@@ -16,7 +16,13 @@ interface LanguageContextType {
   t: (key: string) => string;
   dir: "rtl" | "ltr";
 }
-
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void; // ← add this line
+  t: (key: string) => string;
+  dir: "rtl" | "ltr";
+}
 const translations: Record<Language, Record<string, string>> = {
   ar: {
     // Header
@@ -345,6 +351,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   }, []);
 
+  // ← add this
+  const toggleLanguage = useCallback(() => {
+    setLanguage(language === "ar" ? "en" : "ar");
+  }, [language, setLanguage]);
+
   const t = useCallback(
     (key: string) => {
       return translations[language][key] || key;
@@ -355,7 +366,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const dir = language === "ar" ? "rtl" : "ltr";
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, dir }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, toggleLanguage, t, dir }}
+    >
       {children}
     </LanguageContext.Provider>
   );

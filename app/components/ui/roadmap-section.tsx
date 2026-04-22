@@ -410,8 +410,10 @@ function StepCard({
                 </span>
               </div>
             </div>
-            <p className="text-xs text-center text-emerald-700 dark:text-emerald-300 font-semibold">
-              {dir === "rtl" ? "تم فتح التقرير الكامل" : "Full report unlocked"}
+            <p className="text-xs text-center text-emerald-700 dark:text-emerald-300 font-semibold leading-relaxed">
+              {dir === "rtl"
+                ? "يعمل خبراؤنا الآن على إعداد عرض مخصص ومتكامل يناسب حالتكم تماماً!"
+                : "Our experts are now preparing a fully customized proposal perfectly suited to your case!"}
             </p>
           </div>
         ) : !effectivelyLocked ? (
@@ -550,8 +552,11 @@ function StageSection({
         )}
       >
         {steps.map((step) => {
-          const isCompleted = step.id === 1 && submissionDone;
-          const isUnlocked = step.id === 2 && submissionDone;
+          const isCompleted =
+            (step.id === 1 && submissionDone) ||
+            (step.id === 2 && submission2Done);
+          const isUnlocked =
+            step.id === 2 && submissionDone && !submission2Done;
           const isStep3FirstUnlock = step.id === 3 && submissionDone;
           const isStep3FullyUnlocked = step.id === 3 && submission2Done;
 
@@ -607,21 +612,9 @@ export function RoadmapSection() {
   const duringSteps = roadmapSteps.filter((s) => s.stage === "during");
   const afterSteps = roadmapSteps.filter((s) => s.stage === "after");
 
-  // ── Persistent state ───────────────────────────────────────────────────────
-  const [submissionDone, setSubmissionDone] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!localStorage.getItem(SUBMISSION_STORAGE_KEY);
-  });
-
-  const [submission2Done, setSubmission2Done] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!localStorage.getItem(SUBMISSION2_STORAGE_KEY);
-  });
-
-  const [userRegistered, setUserRegistered] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!localStorage.getItem(USER_STORAGE_KEY);
-  });
+  const [submissionDone, setSubmissionDone] = useState(false);
+  const [submission2Done, setSubmission2Done] = useState(false);
+  const [userRegistered, setUserRegistered] = useState(false);
 
   // Sync across tabs / on mount
   useEffect(() => {
