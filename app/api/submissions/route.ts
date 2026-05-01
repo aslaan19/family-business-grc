@@ -4,8 +4,6 @@ import { prisma } from "../../lib/prisma";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
-
 type AnswerInput = {
   questionId:     string;
   selectedLabel?: string;
@@ -46,14 +44,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const submission = await prisma.$transaction(async (tx: TransactionClient) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const submission = await prisma.$transaction(async (tx: any) => {
       const sub = await tx.assessmentSubmission.create({
         data: {
           userId,
           totalScore,
-          maxScore:   maxScore ?? null,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          rawPayload: (rawPayload ?? null) as any,
+          maxScore:   maxScore  ?? null,
+          rawPayload: rawPayload ?? null,
         },
       });
 
