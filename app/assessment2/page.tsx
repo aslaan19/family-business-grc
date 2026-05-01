@@ -24,7 +24,7 @@ import {
   SUBMISSION2_STORAGE_KEY,
 } from "../components/ui/assessment-form-modal";
 import { cn } from "../lib/utils";
-
+import Image from "next/image";
 // ─── Professional SVG Hero Image ─────────────────────────────────────────────
 
 function HeroIllustration() {
