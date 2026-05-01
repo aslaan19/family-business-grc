@@ -1,30 +1,38 @@
 // app/api/submissions2/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
-/**
- * POST /api/submissions2
- *
- * Assessment 2 is a rich data-collection form (not scored MCQ).
- * The entire form is stored as rawPayload JSON.
- * answers array will be empty — scoring is not applicable here.
- */
-export async function POST(req: NextRequest) {
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type Submission2Body = {
+  userId:      string;
+  formData?:   Record<string, unknown>;
+  rawPayload?: Record<string, unknown>;
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function toJsonValue(val: Record<string, unknown> | undefined): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  return val ? (val as Prisma.InputJsonValue) : Prisma.JsonNull;
+}
+
+// ── POST /api/submissions2 ───────────────────────────────────────────────────
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as Partial<Submission2Body>;
     const { userId, formData, rawPayload } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    // Check user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check assessment1 is done first
     const sub1 = await prisma.assessmentSubmission.findFirst({
       where: { userId, submissionType: "assessment1" },
     });
@@ -35,7 +43,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check not already submitted assessment2
     const existing = await prisma.assessmentSubmission.findFirst({
       where: { userId, submissionType: "assessment2" },
     });
@@ -46,14 +53,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store the entire form as rawPayload — no individual answers needed
     const submission = await prisma.assessmentSubmission.create({
       data: {
         userId,
         submissionType: "assessment2",
-        totalScore: 0,
-        maxScore:   0,
-        rawPayload: formData ?? rawPayload ?? {},
+        totalScore:     0,
+        maxScore:       0,
+        rawPayload:     toJsonValue(formData ?? rawPayload),
       },
     });
 
