@@ -1,14 +1,11 @@
 // app/lib/prisma.ts
-import PrismaClientPkg from "@prisma/client";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaClient } = require("@prisma/client");
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-// Support both CJS default export and named export depending on bundler/version
-const PrismaClient =
-  (PrismaClientPkg as unknown as { PrismaClient?: unknown }).PrismaClient ??
-  (PrismaClientPkg as unknown);
-
-type PrismaClientType = InstanceType<typeof import("@prisma/client").PrismaClient>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaClientType = any;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientType | undefined;
@@ -24,11 +21,11 @@ function createPrismaClient(): PrismaClientType {
   const pool    = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (PrismaClient as any)({ adapter }) as PrismaClientType;
+  return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+export const prisma: PrismaClientType =
+  globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
