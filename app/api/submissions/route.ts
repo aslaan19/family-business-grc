@@ -1,8 +1,11 @@
 // app/api/submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 // ── Types ────────────────────────────────────────────────────────────────────
+
+type TransactionClient = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
 
 type AnswerInput = {
   questionId:     string;
@@ -44,12 +47,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const submission = await prisma.$transaction(async (tx) => {
+    const submission = await prisma.$transaction(async (tx: TransactionClient) => {
       const sub = await tx.assessmentSubmission.create({
         data: {
           userId,
           totalScore,
-          maxScore:   maxScore   ?? null,
+          maxScore:   maxScore ?? null,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           rawPayload: (rawPayload ?? null) as any,
         },
