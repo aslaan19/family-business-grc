@@ -5,19 +5,17 @@ import { prisma } from "../../lib/prisma";
 /**
  * POST /api/submissions2
  *
- * Same shape as /api/submissions but sets submissionType = "assessment2"
- * and checks the user hasn't already submitted assessment2.
+ * Assessment 2 is a rich data-collection form (not scored MCQ).
+ * The entire form is stored as rawPayload JSON.
+ * answers array will be empty — scoring is not applicable here.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, totalScore, maxScore, rawPayload, answers } = body;
+    const { userId, formData, rawPayload } = body;
 
-    if (!userId || totalScore === undefined || !Array.isArray(answers)) {
-      return NextResponse.json(
-        { error: "userId, totalScore, and answers are required" },
-        { status: 400 },
-      );
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
     // Check user exists
@@ -48,35 +46,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const submission = await prisma.$transaction(async (tx) => {
-      const sub = await tx.assessmentSubmission.create({
-        data: {
-          userId,
-          submissionType: "assessment2",
-          totalScore,
-          maxScore: maxScore ?? null,
-          rawPayload: rawPayload ?? undefined,
-        },
-      });
-
-      if (answers.length > 0) {
-        await tx.assessmentAnswer.createMany({
-          data: answers.map((a: {
-            questionId: string;
-            selectedLabel?: string;
-            selectedValue: number;
-            note?: string;
-          }) => ({
-            submissionId: sub.id,
-            questionId:   a.questionId,
-            selectedLabel: a.selectedLabel ?? null,
-            selectedValue: a.selectedValue,
-            note:          a.note ?? null,
-          })),
-        });
-      }
-
-      return sub;
+    // Store the entire form as rawPayload — no individual answers needed
+    const submission = await prisma.assessmentSubmission.create({
+      data: {
+        userId,
+        submissionType: "assessment2",
+        totalScore: 0,
+        maxScore:   0,
+        rawPayload: formData ?? rawPayload ?? {},
+      },
     });
 
     return NextResponse.json({ submission }, { status: 201 });

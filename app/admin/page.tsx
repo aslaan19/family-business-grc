@@ -12,22 +12,23 @@ import {
   ChevronDown,
   ChevronUp,
   TrendingUp,
-  Bell,
   RefreshCw,
   ClipboardList,
   FileCheck,
   Phone,
   Mail,
   Building2,
-  ArrowRight,
   CheckCircle,
   AlertCircle,
   Briefcase,
   Shield,
   Activity,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
-// Types
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface Answer {
   id: string;
   selectedLabel: string;
@@ -49,6 +50,7 @@ interface AssessmentData {
   submittedAt: string;
   answers: Answer[];
   catBreakdown: Record<string, { score: number; max: number; pct: number }>;
+  rawPayload?: Record<string, unknown>;
 }
 
 interface User {
@@ -80,7 +82,161 @@ interface Charts {
   categoryAverages: { key: string; avg: number }[];
 }
 
-// Helpers
+// ─── A2 Schema metadata ───────────────────────────────────────────────────────
+
+const A2_SECTIONS: {
+  id: string;
+  titleEn: string;
+  icon: string;
+  keys: string[];
+}[] = [
+  {
+    id: "basic_info",
+    titleEn: "Basic Company Information",
+    icon: "🏢",
+    keys: [
+      "legalName",
+      "yearEstablished",
+      "numEmployees",
+      "numBranches",
+      "citiesOperation",
+      "industrySector",
+      "mainProducts",
+      "annualRevenue",
+      "approxCapital",
+      "projectsPerYear",
+      "avgProjectSize",
+      "keyClients",
+    ],
+  },
+  {
+    id: "organization",
+    titleEn: "Organizational Structure",
+    icon: "🏗️",
+    keys: ["departments"],
+  },
+  {
+    id: "board_governance",
+    titleEn: "Board & Governance",
+    icon: "⚖️",
+    keys: [
+      "boardExists",
+      "advisoryBoard",
+      "auditCommittee",
+      "riskCommittee",
+      "nominationCommittee",
+      "numBoardMembers",
+      "independentDirectors",
+    ],
+  },
+  {
+    id: "strategy",
+    titleEn: "Strategy & Planning",
+    icon: "🎯",
+    keys: [
+      "vision",
+      "mission",
+      "strategicObjectives",
+      "writtenStrategy",
+      "annualOperatingPlan",
+      "strategicKPIs",
+    ],
+  },
+  {
+    id: "financial",
+    titleEn: "Financial Overview",
+    icon: "💰",
+    keys: [
+      "revenueRange",
+      "capital",
+      "profitabilityPct",
+      "majorRevenueStreams",
+      "top5Clients",
+      "keyCostDrivers",
+    ],
+  },
+  {
+    id: "operations",
+    titleEn: "Core Operations",
+    icon: "⚙️",
+    keys: ["coreProcesses"],
+  },
+  {
+    id: "governance_docs",
+    titleEn: "Governance Documentation",
+    icon: "📋",
+    keys: [
+      "govCharter",
+      "boardCharter",
+      "committeeCharters",
+      "conflictPolicy",
+      "delegationAuth",
+      "policiesRepo",
+    ],
+  },
+  {
+    id: "risks",
+    titleEn: "Risk Management",
+    icon: "🛡️",
+    keys: [
+      "riskFramework",
+      "riskRegister",
+      "annualRiskAssess",
+      "riskCommitteeExists",
+      "top5Risks",
+    ],
+  },
+];
+
+const A2_LABELS: Record<string, string> = {
+  legalName: "Legal Company Name",
+  yearEstablished: "Year Established",
+  numEmployees: "No. of Employees",
+  numBranches: "No. of Branches",
+  citiesOperation: "Cities / Countries",
+  industrySector: "Industry Sector",
+  mainProducts: "Main Products / Services",
+  annualRevenue: "Annual Revenue Range",
+  approxCapital: "Approximate Capital",
+  projectsPerYear: "Projects / Year",
+  avgProjectSize: "Avg Project Size",
+  keyClients: "Key Clients",
+  departments: "Departments Table",
+  vision: "Company Vision",
+  mission: "Company Mission",
+  strategicObjectives: "Strategic Objectives",
+  writtenStrategy: "Written Strategy Document",
+  annualOperatingPlan: "Annual Operating Plan",
+  strategicKPIs: "Strategic KPIs",
+  boardExists: "Board of Directors",
+  advisoryBoard: "Advisory Board",
+  auditCommittee: "Audit Committee",
+  riskCommittee: "Risk Committee",
+  nominationCommittee: "Nomination / Remuneration Committee",
+  numBoardMembers: "No. of Board Members",
+  independentDirectors: "Independent Directors",
+  revenueRange: "Revenue Range",
+  capital: "Capital",
+  profitabilityPct: "Profitability %",
+  majorRevenueStreams: "Major Revenue Streams",
+  top5Clients: "Top 5 Clients",
+  keyCostDrivers: "Key Cost Drivers",
+  coreProcesses: "Core Processes Table",
+  govCharter: "Governance Charter",
+  boardCharter: "Board Charter",
+  committeeCharters: "Committee Charters",
+  conflictPolicy: "Conflict of Interest Policy",
+  delegationAuth: "Delegation of Authority",
+  policiesRepo: "Corporate Policies Repository",
+  riskFramework: "Risk Management Framework",
+  riskRegister: "Risk Register",
+  annualRiskAssess: "Annual Risk Assessment",
+  riskCommitteeExists: "Risk Committee",
+  top5Risks: "Top 5 Business Risks",
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function pctColor(pct: number) {
   if (pct >= 75)
     return {
@@ -88,6 +244,7 @@ function pctColor(pct: number) {
       bg: "bg-emerald-50",
       bar: "bg-emerald-500",
       border: "border-emerald-200",
+      light: "bg-emerald-100",
     };
   if (pct >= 50)
     return {
@@ -95,12 +252,14 @@ function pctColor(pct: number) {
       bg: "bg-amber-50",
       bar: "bg-amber-500",
       border: "border-amber-200",
+      light: "bg-amber-100",
     };
   return {
     text: "text-red-700",
     bg: "bg-red-50",
     bar: "bg-red-500",
     border: "border-red-200",
+    light: "bg-red-100",
   };
 }
 
@@ -108,7 +267,7 @@ function stageMeta(stage: User["stage"]) {
   if (stage === "registered")
     return {
       label: "Registered",
-      color: "bg-gray-100 text-gray-700 border-gray-200",
+      color: "bg-gray-100 text-gray-600 border-gray-200",
       dot: "bg-gray-400",
     };
   if (stage === "assessment1_done")
@@ -118,17 +277,10 @@ function stageMeta(stage: User["stage"]) {
       dot: "bg-blue-500",
     };
   return {
-    label: "Ready",
+    label: "Proposal Ready",
     color: "bg-emerald-50 text-emerald-700 border-emerald-200",
     dot: "bg-emerald-500",
   };
-}
-
-function labelColor(label: string) {
-  if (label === "yes")
-    return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (label === "partial") return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-red-50 text-red-700 border-red-200";
 }
 
 function fmt(date: string) {
@@ -139,7 +291,15 @@ function fmt(date: string) {
   });
 }
 
-// Mini Bar Chart
+function labelColor(label: string) {
+  if (label === "yes")
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (label === "partial") return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-red-50 text-red-700 border-red-200";
+}
+
+// ─── Charts ───────────────────────────────────────────────────────────────────
+
 function MiniBarChart({
   labels,
   values,
@@ -171,7 +331,6 @@ function MiniBarChart({
   );
 }
 
-// Donut Chart
 function DonutChart({
   segments,
 }: {
@@ -179,15 +338,13 @@ function DonutChart({
 }) {
   const total = segments.reduce((s, v) => s + v.value, 0) || 1;
   let cumulative = 0;
-  const size = 100;
   const r = 36;
   const cx = 50;
   const cy = 50;
   const circumference = 2 * Math.PI * r;
-
   return (
-    <div className="flex items-center gap-6">
-      <svg width={size} height={size} className="-rotate-90">
+    <div className="flex items-center gap-5">
+      <svg width={100} height={100} className="-rotate-90">
         <circle
           cx={cx}
           cy={cy}
@@ -252,7 +409,6 @@ function DonutChart({
   );
 }
 
-// Category Bars
 function CategoryBars({ data }: { data: { key: string; avg: number }[] }) {
   return (
     <div className="space-y-3">
@@ -279,7 +435,6 @@ function CategoryBars({ data }: { data: { key: string; avg: number }[] }) {
   );
 }
 
-// Score Buckets
 function ScoreBuckets({ buckets }: { buckets: Record<string, number> }) {
   const entries = Object.entries(buckets);
   const max = Math.max(...entries.map(([, v]) => v), 1);
@@ -305,24 +460,143 @@ function ScoreBuckets({ buckets }: { buckets: Record<string, number> }) {
   );
 }
 
-// User Drawer
+// ─── A2 Value Renderer ────────────────────────────────────────────────────────
+
+function A2Value({ fieldKey, val }: { fieldKey: string; val: unknown }) {
+  if (val === undefined || val === null || val === "") {
+    return <span className="text-gray-300 italic text-xs">Not provided</span>;
+  }
+
+  // Table (array of objects)
+  if (Array.isArray(val)) {
+    if (val.length === 0)
+      return (
+        <span className="text-gray-300 italic text-xs">No entries added</span>
+      );
+    const cols = Object.keys(val[0] as object);
+    return (
+      <div className="overflow-x-auto rounded-lg border border-gray-200 mt-1">
+        <table className="w-full min-w-[360px] text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {cols.map((c) => (
+                <th
+                  key={c}
+                  className="px-3 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wide"
+                >
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {(val as Record<string, string>[]).map((row, ri) => (
+              <tr key={ri} className="hover:bg-gray-50">
+                {cols.map((c) => (
+                  <td key={c} className="px-3 py-2 text-gray-700">
+                    {row[c] || <span className="text-gray-300">—</span>}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Yes / No pill
+  if (val === "Yes" || val === "No") {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+          val === "Yes"
+            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+            : "bg-red-50 text-red-700 border-red-200"
+        }`}
+      >
+        {val === "Yes" ? "✓ Yes" : "✗ No"}
+      </span>
+    );
+  }
+
+  // Long text / multiline
+  if (typeof val === "string" && val.length > 80) {
+    return (
+      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+        {val}
+      </p>
+    );
+  }
+
+  return (
+    <span className="text-sm font-semibold text-gray-900">{String(val)}</span>
+  );
+}
+
+// ─── A2 Completeness checker ──────────────────────────────────────────────────
+
+function A2Completeness({ payload }: { payload: Record<string, unknown> }) {
+  const allKeys = A2_SECTIONS.flatMap((s) => s.keys);
+  const filled = allKeys.filter((k) => {
+    const v = payload[k];
+    if (!v) return false;
+    if (Array.isArray(v)) return v.length > 0;
+    return String(v).trim() !== "";
+  }).length;
+  const pct = Math.round((filled / allKeys.length) * 100);
+  const c = pctColor(pct);
+  return (
+    <div className="flex items-center gap-3 mb-5 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+      <div className={`text-2xl font-black ${c.text}`}>{pct}%</div>
+      <div className="flex-1">
+        <p className="text-xs font-semibold text-gray-700 mb-1">
+          Form Completeness — {filled} / {allKeys.length} fields filled
+        </p>
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full ${c.bar} transition-all`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── User Drawer ──────────────────────────────────────────────────────────────
+
 function UserDrawer({ user, onClose }: { user: User; onClose: () => void }) {
-  const [tab, setTab] = useState<"a1" | "a2">("a1");
-  const activeAssessment = tab === "a1" ? user.assessment1 : user.assessment2;
+  const [tab, setTab] = useState<"a1" | "a2">(user.assessment1 ? "a1" : "a2");
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(["basic_info"]),
+  );
   const sm = stageMeta(user.stage);
+
+  function toggleSection(id: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  const a1 = user.assessment1;
+  const a2 = user.assessment2;
+  const payload = a2?.rawPayload ?? {};
 
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-black/20 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="w-full max-w-xl bg-white border-l border-gray-200 h-full overflow-y-auto flex flex-col shadow-2xl"
+        className="w-full max-w-[600px] bg-white border-l border-gray-200 h-full overflow-y-auto flex flex-col shadow-2xl"
         style={{ animation: "slideIn 0.25s ease-out" }}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-emerald-200">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-emerald-200">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -342,37 +616,35 @@ function UserDrawer({ user, onClose }: { user: User; onClose: () => void }) {
               <X className="w-4 h-4 text-gray-500" />
             </button>
           </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             {[
               { icon: Mail, val: user.email },
-              { icon: Phone, val: user.phone ?? "Not provided" },
-              { icon: Building2, val: user.organization ?? "Not provided" },
+              { icon: Phone, val: user.phone ?? "—" },
+              { icon: Building2, val: user.organization ?? "—" },
               { icon: Clock, val: fmt(user.createdAt) },
             ].map(({ icon: Icon, val }, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 text-sm text-gray-600"
+                className="flex items-center gap-2 text-xs text-gray-500"
               >
-                <Icon className="w-4 h-4 text-gray-400 shrink-0" />
+                <Icon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                 <span className="truncate">{val}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="px-6 pt-5">
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+        {/* ── Tabs ── */}
+        <div className="px-6 pt-5 pb-1">
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
             {(["a1", "a2"] as const).map((t) => {
-              const hasData =
-                t === "a1" ? !!user.assessment1 : !!user.assessment2;
+              const hasData = t === "a1" ? !!a1 : !!a2;
               return (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
                   disabled={!hasData}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                     tab === t
                       ? "bg-white text-gray-900 shadow-sm"
                       : hasData
@@ -380,9 +652,19 @@ function UserDrawer({ user, onClose }: { user: User; onClose: () => void }) {
                         : "text-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  {t === "a1" ? "Assessment 1" : "Assessment 2"}
+                  {t === "a1" ? (
+                    <>
+                      <BarChart3 className="w-3.5 h-3.5" /> Assessment 1 —
+                      Scored
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="w-3.5 h-3.5" /> Assessment 2 —
+                      Profile
+                    </>
+                  )}
                   {!hasData && (
-                    <span className="ml-1 text-[10px]">(pending)</span>
+                    <span className="text-[10px] opacity-60">(pending)</span>
                   )}
                 </button>
               );
@@ -390,120 +672,296 @@ function UserDrawer({ user, onClose }: { user: User; onClose: () => void }) {
           </div>
         </div>
 
-        {activeAssessment ? (
-          <div className="px-6 py-5 space-y-5 flex-1">
-            {/* Score */}
-            <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500 font-medium">
-                  Overall Score
-                </span>
-                <span
-                  className={`text-3xl font-bold ${pctColor(activeAssessment.pct ?? 0).text}`}
-                >
-                  {activeAssessment.pct}%
-                </span>
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+        {/* ── Assessment 1 Tab ── */}
+        {tab === "a1" && (
+          <div className="px-6 py-5 flex-1 space-y-5">
+            {a1 ? (
+              <>
+                {/* Score hero */}
                 <div
-                  className={`h-full rounded-full ${pctColor(activeAssessment.pct ?? 0).bar} transition-all`}
-                  style={{ width: `${activeAssessment.pct ?? 0}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>{fmt(activeAssessment.submittedAt)}</span>
-                <span>
-                  {activeAssessment.totalScore} / {activeAssessment.maxScore}{" "}
-                  points
-                </span>
-              </div>
-            </div>
-
-            {/* Breakdown */}
-            <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <h4 className="text-sm font-bold text-gray-900 mb-4">
-                Category Breakdown
-              </h4>
-              <div className="space-y-3">
-                {Object.entries(activeAssessment.catBreakdown).map(
-                  ([cat, data]) => {
-                    const c = pctColor(data.pct);
-                    return (
-                      <div key={cat}>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-xs text-gray-600 capitalize">
-                            {cat.replace(/_/g, " ")}
-                          </span>
-                          <span className={`text-xs font-bold ${c.text}`}>
-                            {data.pct}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${c.bar}`}
-                            style={{ width: `${data.pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
-              </div>
-            </div>
-
-            {/* Answers */}
-            <div>
-              <h4 className="text-sm font-bold text-gray-900 mb-3">
-                All Responses
-              </h4>
-              <div className="space-y-2">
-                {activeAssessment.answers
-                  .sort(
-                    (a, b) =>
-                      a.question.categoryOrder - b.question.categoryOrder ||
-                      a.question.questionOrder - b.question.questionOrder,
-                  )
-                  .map((ans) => (
+                  className={`rounded-2xl p-5 border ${pctColor(a1.pct ?? 0).border} ${pctColor(a1.pct ?? 0).bg}`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Overall Score
+                      </p>
+                      <p
+                        className={`text-5xl font-black mt-1 ${pctColor(a1.pct ?? 0).text}`}
+                      >
+                        {a1.pct}%
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">
+                        {a1.totalScore}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        out of {a1.maxScore} pts
+                      </p>
+                    </div>
+                  </div>
+                  <div className="h-2.5 bg-white/60 rounded-full overflow-hidden">
                     <div
-                      key={ans.id}
-                      className="bg-gray-50 rounded-lg border border-gray-100 p-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            {ans.question.questionEn}
-                          </p>
-                          <p
-                            className="text-xs text-gray-400 mt-1 text-right"
-                            dir="rtl"
+                      className={`h-full rounded-full ${pctColor(a1.pct ?? 0).bar} transition-all`}
+                      style={{ width: `${a1.pct ?? 0}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Submitted {fmt(a1.submittedAt)}
+                  </p>
+                </div>
+
+                {/* Category breakdown */}
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                  <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-gray-400" /> Category
+                    Breakdown
+                  </h4>
+                  <div className="space-y-3">
+                    {Object.entries(a1.catBreakdown)
+                      .sort(([, a], [, b]) => b.pct - a.pct)
+                      .map(([cat, data]) => {
+                        const c = pctColor(data.pct);
+                        return (
+                          <div key={cat}>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-xs text-gray-600 capitalize">
+                                {cat.replace(/_/g, " ")}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-gray-400">
+                                  {data.score}/{data.max}
+                                </span>
+                                <span className={`text-xs font-bold ${c.text}`}>
+                                  {data.pct}%
+                                </span>
+                              </div>
+                            </div>
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${c.bar}`}
+                                style={{ width: `${data.pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Answers grouped by category */}
+                {Object.entries(
+                  a1.answers
+                    .sort(
+                      (a, b) =>
+                        a.question.categoryOrder - b.question.categoryOrder ||
+                        a.question.questionOrder - b.question.questionOrder,
+                    )
+                    .reduce<Record<string, Answer[]>>((acc, ans) => {
+                      const k = ans.question.categoryKey;
+                      if (!acc[k]) acc[k] = [];
+                      acc[k].push(ans);
+                      return acc;
+                    }, {}),
+                ).map(([cat, answers]) => {
+                  const catScore = answers.reduce(
+                    (s, a) => s + a.selectedValue,
+                    0,
+                  );
+                  const catMax = answers.length * 10;
+                  const catPct = Math.round((catScore / catMax) * 100);
+                  const c = pctColor(catPct);
+                  return (
+                    <div key={cat}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide capitalize">
+                          {cat.replace(/_/g, " ")}
+                        </h4>
+                        <span
+                          className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.bg} ${c.text} border ${c.border}`}
+                        >
+                          {catScore}/{catMax}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {answers.map((ans) => (
+                          <div
+                            key={ans.id}
+                            className="bg-white rounded-lg border border-gray-100 p-3.5 hover:border-gray-200 transition-colors"
                           >
-                            {ans.question.questionAr}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full border ${labelColor(ans.selectedLabel)}`}
-                          >
-                            {ans.selectedLabel === "yes"
-                              ? "Yes"
-                              : ans.selectedLabel === "partial"
-                                ? "Partial"
-                                : "No"}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            +{ans.selectedValue}
-                          </span>
-                        </div>
+                            <div className="flex items-start gap-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-800 leading-relaxed">
+                                  {ans.question.questionEn}
+                                </p>
+                                <p
+                                  className="text-[11px] text-gray-400 mt-1 text-right"
+                                  dir="rtl"
+                                >
+                                  {ans.question.questionAr}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1 shrink-0 mt-0.5">
+                                <span
+                                  className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${labelColor(ans.selectedLabel)}`}
+                                >
+                                  {ans.selectedLabel === "yes"
+                                    ? "✓ Yes"
+                                    : ans.selectedLabel === "partial"
+                                      ? "~ Partial"
+                                      : "✗ No"}
+                                </span>
+                                <span
+                                  className={`text-[11px] font-bold ${ans.selectedValue === 10 ? "text-emerald-600" : ans.selectedValue === 5 ? "text-amber-600" : "text-red-500"}`}
+                                >
+                                  +{ans.selectedValue} pts
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center flex-col gap-3 text-gray-400 py-16">
+                <ClipboardList className="w-12 h-12" />
+                <p className="text-sm font-medium">
+                  Assessment 1 not submitted yet
+                </p>
               </div>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center flex-col gap-3 text-gray-400">
-            <ClipboardList className="w-10 h-10" />
-            <p className="text-sm font-medium">Assessment not submitted yet</p>
+        )}
+
+        {/* ── Assessment 2 Tab ── */}
+        {tab === "a2" && (
+          <div className="px-6 py-5 flex-1">
+            {a2 ? (
+              <div className="space-y-3">
+                {/* Completeness bar */}
+                <A2Completeness payload={payload} />
+
+                {/* Submitted date */}
+                <p className="text-xs text-gray-400 mb-4 flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                  Submitted {fmt(a2.submittedAt)}
+                </p>
+
+                {/* Collapsible sections */}
+                {A2_SECTIONS.map((section) => {
+                  const isOpen = openSections.has(section.id);
+                  const entries = section.keys
+                    .map((k) => ({
+                      key: k,
+                      label: A2_LABELS[k] ?? k,
+                      val: payload[k],
+                    }))
+                    .filter((e) => e.val !== undefined);
+                  const filled = entries.filter((e) => {
+                    if (!e.val) return false;
+                    if (Array.isArray(e.val))
+                      return (e.val as unknown[]).length > 0;
+                    return String(e.val).trim() !== "";
+                  }).length;
+                  const total = section.keys.length;
+
+                  return (
+                    <div
+                      key={section.id}
+                      className="border border-gray-200 rounded-xl overflow-hidden"
+                    >
+                      {/* Section header */}
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{section.icon}</span>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">
+                              {section.titleEn}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              {filled} / {total} fields completed
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {/* Mini fill indicator */}
+                          <div className="flex gap-0.5">
+                            {section.keys.map((k) => {
+                              const v = payload[k];
+                              const isFilled =
+                                v &&
+                                (Array.isArray(v)
+                                  ? (v as unknown[]).length > 0
+                                  : String(v).trim() !== "");
+                              return (
+                                <div
+                                  key={k}
+                                  className={`w-1.5 h-3 rounded-sm ${isFilled ? "bg-emerald-500" : "bg-gray-200"}`}
+                                />
+                              );
+                            })}
+                          </div>
+                          {isOpen ? (
+                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Section body */}
+                      {isOpen && (
+                        <div className="px-5 py-4 space-y-4 bg-white">
+                          {section.keys.map((k) => {
+                            const val = payload[k];
+                            const label = A2_LABELS[k] ?? k;
+                            const isEmpty =
+                              !val ||
+                              (Array.isArray(val)
+                                ? (val as unknown[]).length === 0
+                                : String(val).trim() === "");
+                            return (
+                              <div
+                                key={k}
+                                className={`${isEmpty ? "opacity-50" : ""}`}
+                              >
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                                  {label}
+                                  {isEmpty && (
+                                    <span className="ml-2 normal-case text-gray-400 font-normal">
+                                      — not provided
+                                    </span>
+                                  )}
+                                </p>
+                                <A2Value fieldKey={k} val={val} />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center flex-col gap-3 text-gray-400 py-16">
+                <FileCheck className="w-12 h-12" />
+                <p className="text-sm font-medium">
+                  Assessment 2 not submitted yet
+                </p>
+                <p className="text-xs text-center max-w-xs text-gray-400">
+                  The user needs to complete Assessment 1 first, then fill out
+                  the institutional profile form.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -511,7 +969,8 @@ function UserDrawer({ user, onClose }: { user: User; onClose: () => void }) {
   );
 }
 
-// Pipeline Card
+// ─── Pipeline Card ────────────────────────────────────────────────────────────
+
 function PipelineCard({ user, onClick }: { user: User; onClick: () => void }) {
   const pct = user.assessment1?.pct;
   return (
@@ -555,7 +1014,8 @@ function PipelineCard({ user, onClick }: { user: User; onClick: () => void }) {
   );
 }
 
-// Main
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function AdminPage() {
   const [data, setData] = useState<{
     users: User[];
@@ -580,7 +1040,6 @@ export default function AdminPage() {
     setLoading(false);
     setRefreshing(false);
   }
-
   useEffect(() => {
     load();
   }, []);
@@ -664,7 +1123,7 @@ export default function AdminPage() {
   return (
     <>
       <style>{`
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
       `}</style>
 
       <div className="min-h-screen bg-gray-50">
@@ -700,7 +1159,7 @@ export default function AdminPage() {
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-lg shadow-emerald-200"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                {exporting ? "Exporting..." : "Export"}
+                {exporting ? "Exporting..." : "Export Excel"}
               </button>
             </div>
           </div>
@@ -729,27 +1188,27 @@ export default function AdminPage() {
                 color: "bg-violet-50 text-violet-600",
               },
               {
-                icon: CheckCircle,
-                label: "Ready",
+                icon: Sparkles,
+                label: "Proposal Ready",
                 value: stats?.proposalReady ?? "—",
                 color: "bg-emerald-50 text-emerald-600",
               },
               {
                 icon: Clock,
-                label: "Pending",
+                label: "Awaiting A1",
                 value: stats?.registered ?? "—",
                 color: "bg-amber-50 text-amber-600",
               },
               {
                 icon: BarChart3,
-                label: "Avg A1",
+                label: "Avg A1 Score",
                 value: stats ? `${stats.avgScore1}%` : "—",
                 color: "bg-cyan-50 text-cyan-600",
               },
               {
                 icon: TrendingUp,
-                label: "Avg A2",
-                value: stats ? `${stats.avgScore2}%` : "—",
+                label: "A2 Submitted",
+                value: stats?.a2Done ?? "—",
                 color: "bg-pink-50 text-pink-600",
               },
             ].map((card, i) => (
@@ -786,7 +1245,6 @@ export default function AdminPage() {
                   values={charts.monthCounts}
                 />
               </div>
-
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -810,14 +1268,13 @@ export default function AdminPage() {
                       color: "#3b82f6",
                     },
                     {
-                      label: "Ready",
+                      label: "A2 Done",
                       value: stats?.proposalReady ?? 0,
                       color: "#059669",
                     },
                   ]}
                 />
               </div>
-
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -830,14 +1287,13 @@ export default function AdminPage() {
                 </div>
                 <ScoreBuckets buckets={charts.scoreBuckets} />
               </div>
-
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">
                       Categories
                     </h3>
-                    <p className="text-xs text-gray-500">Average scores</p>
+                    <p className="text-xs text-gray-500">Average scores A1</p>
                   </div>
                   <AlertCircle className="w-4 h-4 text-gray-400" />
                 </div>
@@ -853,11 +1309,10 @@ export default function AdminPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search users..."
+                placeholder="Search users…"
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
             </div>
-
             <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-lg">
               {(
                 [
@@ -876,20 +1331,16 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-
             <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-lg">
-              <button
-                onClick={() => setView("table")}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${view === "table" ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-900"}`}
-              >
-                Table
-              </button>
-              <button
-                onClick={() => setView("pipeline")}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${view === "pipeline" ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-900"}`}
-              >
-                Pipeline
-              </button>
+              {(["table", "pipeline"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all capitalize ${view === v ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-900"}`}
+                >
+                  {v}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -899,7 +1350,7 @@ export default function AdminPage() {
               {loading ? (
                 <div className="flex items-center justify-center py-24 gap-3 text-gray-400">
                   <div className="w-5 h-5 border-2 border-gray-200 border-t-emerald-500 rounded-full animate-spin" />
-                  <span className="text-sm">Loading...</span>
+                  <span className="text-sm">Loading…</span>
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-24">
@@ -923,7 +1374,7 @@ export default function AdminPage() {
                         </th>
                         <th className="px-6 py-4 text-left">
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Status
+                            Stage
                           </span>
                         </th>
                         <th className="px-6 py-4 text-left">
@@ -931,7 +1382,7 @@ export default function AdminPage() {
                         </th>
                         <th className="px-6 py-4 text-left hidden lg:table-cell">
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            A2 Score
+                            A2 Status
                           </span>
                         </th>
                         <th className="px-6 py-4 text-left hidden xl:table-cell">
@@ -944,7 +1395,6 @@ export default function AdminPage() {
                       {filtered.map((user) => {
                         const sm = stageMeta(user.stage);
                         const p1 = user.assessment1?.pct;
-                        const p2 = user.assessment2?.pct;
                         return (
                           <tr
                             key={user.id}
@@ -1002,22 +1452,15 @@ export default function AdminPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 hidden lg:table-cell">
-                              {p2 !== undefined && p2 !== null ? (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                    <div
-                                      className={`h-full rounded-full ${pctColor(p2).bar}`}
-                                      style={{ width: `${p2}%` }}
-                                    />
-                                  </div>
-                                  <span
-                                    className={`text-sm font-bold ${pctColor(p2).text}`}
-                                  >
-                                    {p2}%
-                                  </span>
-                                </div>
+                              {user.assessment2 ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <CheckCircle className="w-3 h-3" /> Profile
+                                  Submitted
+                                </span>
                               ) : (
-                                <span className="text-gray-300 text-sm">—</span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                  <Clock className="w-3 h-3" /> Pending
+                                </span>
                               )}
                             </td>
                             <td className="px-6 py-4 hidden xl:table-cell">
@@ -1073,7 +1516,7 @@ export default function AdminPage() {
                 {
                   key: "assessment1_done",
                   title: "A1 Complete",
-                  sub: "Ready for A2",
+                  sub: "Ready for A2 profile",
                   color: "border-t-blue-500",
                   icon: ClipboardList,
                   users: pipeline.assessment1_done,
@@ -1081,7 +1524,7 @@ export default function AdminPage() {
                 {
                   key: "proposal_ready",
                   title: "Proposal Ready",
-                  sub: "Both complete",
+                  sub: "Both complete — 🏆",
                   color: "border-t-emerald-500",
                   icon: CheckCircle,
                   users: pipeline.proposal_ready,
