@@ -1,6 +1,5 @@
 // app/api/submissions2/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -10,12 +9,6 @@ type Submission2Body = {
   formData?:   Record<string, unknown>;
   rawPayload?: Record<string, unknown>;
 };
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function toJsonValue(val: Record<string, unknown> | undefined): Prisma.InputJsonValue | typeof Prisma.JsonNull {
-  return val ? (val as Prisma.InputJsonValue) : Prisma.JsonNull;
-}
 
 // ── POST /api/submissions2 ───────────────────────────────────────────────────
 
@@ -59,7 +52,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         submissionType: "assessment2",
         totalScore:     0,
         maxScore:       0,
-        rawPayload:     toJsonValue(formData ?? rawPayload),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rawPayload:     (formData ?? rawPayload ?? null) as any,
       },
     });
 

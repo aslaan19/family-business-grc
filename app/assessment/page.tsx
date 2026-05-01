@@ -155,10 +155,10 @@ export default function AssessmentPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/10">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/10 ">
                 <div className="aspect-4/3 relative">
                   <Image
-                    src="/images/assessment-hero.jpg"
+                    src="/images/assessment1.png"
                     alt="Family Business Assessment"
                     fill
                     className="object-cover"
