@@ -2,9 +2,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 
-export async function POST(req: NextRequest) {
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type LookupBody = {
+  email: string;
+};
+
+type SubmissionTypeRow = {
+  submissionType: string;
+};
+
+// ── POST /api/users/lookup ───────────────────────────────────────────────────
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const { email } = await req.json();
+    const body = (await req.json()) as Partial<LookupBody>;
+    const { email } = body;
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
@@ -21,7 +34,7 @@ export async function POST(req: NextRequest) {
     const submissions = await prisma.assessmentSubmission.findMany({
       where:  { userId: user.id },
       select: { submissionType: true },
-    });
+    }) as SubmissionTypeRow[];
 
     return NextResponse.json({
       user: {
@@ -31,8 +44,8 @@ export async function POST(req: NextRequest) {
         phone:       user.phone,
         companyName: user.companyName,
       },
-      hasAssessment1: submissions.some((s) => s.submissionType === "assessment1"),
-      hasAssessment2: submissions.some((s) => s.submissionType === "assessment2"),
+      hasAssessment1: submissions.some((s: SubmissionTypeRow) => s.submissionType === "assessment1"),
+      hasAssessment2: submissions.some((s: SubmissionTypeRow) => s.submissionType === "assessment2"),
     });
   } catch (err) {
     console.error("[POST /api/users/lookup]", err);

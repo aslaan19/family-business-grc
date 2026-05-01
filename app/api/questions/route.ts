@@ -2,43 +2,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 
-/**
- * GET /api/questions?lang=ar|en
- *
- * Returns all questions ordered properly:
- * categoryOrder → questionOrder
- *
- * Also supports language selection
- */
-export async function GET(req: NextRequest) {
-  try {
-    const lang = req.nextUrl.searchParams.get("lang") || "ar";
+// ── Types ────────────────────────────────────────────────────────────────────
 
-    const questions = await prisma.assessmentQuestion.findMany({
+type QuestionRow = {
+  id:            string;
+  categoryKey:   string;
+  categoryOrder: number;
+  questionOrder: number;
+  titleAr:       string | null;
+  titleEn:       string | null;
+  questionAr:    string | null;
+  questionEn:    string | null;
+  descriptionAr: string | null;
+  descriptionEn: string | null;
+};
+
+// ── Route handler ────────────────────────────────────────────────────────────
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const lang = req.nextUrl.searchParams.get("lang") ?? "ar";
+    const isAr = lang === "ar";
+
+    const rawQuestions = await prisma.assessmentQuestion.findMany({
       orderBy: [
         { categoryOrder: "asc" },
         { questionOrder: "asc" },
       ],
     });
 
-    // 🔥 Transform for frontend (VERY IMPORTANT)
-    const formatted = questions.map((q) => ({
-      id: q.id,
-      categoryKey: q.categoryKey,
+    const questions = rawQuestions as unknown as QuestionRow[];
+
+    const formatted = questions.map((q: QuestionRow) => ({
+      id:            q.id,
+      categoryKey:   q.categoryKey,
       categoryOrder: q.categoryOrder,
       questionOrder: q.questionOrder,
-
-      title: lang === "ar" ? q.titleAr : q.titleEn,
-      question: lang === "ar" ? q.questionAr : q.questionEn,
-      description: lang === "ar" ? q.descriptionAr : q.descriptionEn,
+      title:         isAr ? q.titleAr       : q.titleEn,
+      question:      isAr ? q.questionAr    : q.questionEn,
+      description:   isAr ? q.descriptionAr : q.descriptionEn,
     }));
 
     return NextResponse.json({ questions: formatted });
   } catch (err) {
     console.error("[GET /api/questions]", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -2,10 +2,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 
-export async function POST(req: NextRequest) {
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type CreateUserBody = {
+  fullName:     string;
+  jobTitle?:    string;
+  email:        string;
+  phone?:       string;
+  companyName?: string;
+  companySize?: string;
+};
+
+type SubmissionTypeRow = {
+  submissionType: string;
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function hasA1(submissions: SubmissionTypeRow[]): boolean {
+  return submissions.some((s: SubmissionTypeRow) => s.submissionType === "assessment1");
+}
+
+function hasA2(submissions: SubmissionTypeRow[]): boolean {
+  return submissions.some((s: SubmissionTypeRow) => s.submissionType === "assessment2");
+}
+
+// ── POST /api/users ──────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const body = await req.json();
-    const { fullName, jobTitle, email, phone, companyName, companySize } = body;
+    const body = (await req.json()) as Partial<CreateUserBody>;
+    const { fullName, email, phone, companyName } = body;
 
     if (!fullName || !email) {
       return NextResponse.json(
@@ -14,64 +41,49 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email already exists
-    const existingByEmail = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedPhone = phone?.trim() ?? null;
 
-    // Check if phone already exists (on a DIFFERENT user)
-    if (phone) {
+    // Check if phone is taken by a different user
+    if (normalizedPhone) {
       const existingByPhone = await prisma.user.findFirst({
         where: {
-          phone: phone.trim(),
-          NOT: { email: email.toLowerCase().trim() },
+          phone: normalizedPhone,
+          NOT:   { email: normalizedEmail },
         },
       });
       if (existingByPhone) {
-        return NextResponse.json(
-          { error: "phone_taken" },
-          { status: 409 },
-        );
+        return NextResponse.json({ error: "phone_taken" }, { status: 409 });
       }
     }
 
-    let user;
+    const existingByEmail = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
-    if (existingByEmail) {
-      // Returning user — update their info
-      user = await prisma.user.update({
-        where: { email: email.toLowerCase().trim() },
-        data: {
-          fullName,
-          phone:       phone       || null,
-          companyName: companyName || null,
-        },
-      });
-    } else {
-      // New user — create
-      user = await prisma.user.create({
-        data: {
-          fullName,
-          email:       email.toLowerCase().trim(),
-          phone:       phone       || null,
-          companyName: companyName || null,
-        },
-      });
-    }
+    const user = existingByEmail
+      ? await prisma.user.update({
+          where: { email: normalizedEmail },
+          data:  { fullName, phone: normalizedPhone, companyName: companyName ?? null },
+        })
+      : await prisma.user.create({
+          data: {
+            fullName,
+            email:       normalizedEmail,
+            phone:       normalizedPhone,
+            companyName: companyName ?? null,
+          },
+        });
 
-    // Check both submission types
     const submissions = await prisma.assessmentSubmission.findMany({
       where:  { userId: user.id },
       select: { submissionType: true },
-    });
-
-    const hasAssessment1 = submissions.some((s) => s.submissionType === "assessment1");
-    const hasAssessment2 = submissions.some((s) => s.submissionType === "assessment2");
+    }) as SubmissionTypeRow[];
 
     return NextResponse.json({
       user,
-      hasSubmission:  hasAssessment1,
-      hasSubmission2: hasAssessment2,
+      hasSubmission:  hasA1(submissions),
+      hasSubmission2: hasA2(submissions),
       isReturning:    !!existingByEmail,
     });
   } catch (err) {
@@ -80,10 +92,12 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET /api/users?email=...
-export async function GET(req: NextRequest) {
+// ── GET /api/users?email=... ─────────────────────────────────────────────────
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const email = req.nextUrl.searchParams.get("email");
+
     if (!email) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
@@ -99,13 +113,13 @@ export async function GET(req: NextRequest) {
     const submissions = await prisma.assessmentSubmission.findMany({
       where:  { userId: user.id },
       select: { submissionType: true },
-    });
+    }) as SubmissionTypeRow[];
 
     return NextResponse.json({
       exists:         true,
       user,
-      hasSubmission:  submissions.some((s) => s.submissionType === "assessment1"),
-      hasSubmission2: submissions.some((s) => s.submissionType === "assessment2"),
+      hasSubmission:  hasA1(submissions),
+      hasSubmission2: hasA2(submissions),
     });
   } catch (err) {
     console.error("[GET /api/users]", err);
