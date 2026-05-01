@@ -52,8 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         submissionType: "assessment2",
         totalScore:     0,
         maxScore:       0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rawPayload:     (formData ?? rawPayload ?? null) as any,
+rawPayload: (formData ?? rawPayload ?? undefined) as object | undefined,
       },
     });
 

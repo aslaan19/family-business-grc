@@ -685,18 +685,13 @@ export default function Assessment2LandingPage() {
             </Link>
           </motion.div>
 
-          <div
-            className={cn(
-              "grid lg:grid-cols-2 gap-16 items-center",
-              isRtl && "lg:grid-flow-col-dense",
-            )}
-          >
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Content */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
-              className={isRtl ? "lg:col-start-2" : ""}
+              className={isRtl ? "lg:order-2" : "lg:order-1"}
             >
               {/* Badge */}
               <motion.div
@@ -870,7 +865,7 @@ export default function Assessment2LandingPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.2 }}
-              className={cn("relative", isRtl ? "lg:col-start-1" : "")}
+              className={cn("relative", isRtl ? "lg:order-1" : "lg:order-2")}
             >
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-900/30 border border-emerald-900/20">
                 <HeroIllustration />

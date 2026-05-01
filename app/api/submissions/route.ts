@@ -1,11 +1,10 @@
 // app/api/submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type TransactionClient = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 type AnswerInput = {
   questionId:     string;
