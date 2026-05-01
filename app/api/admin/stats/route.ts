@@ -1,7 +1,23 @@
-// app/api/admin/stats/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
+import { Prisma } from "@prisma/client";
 
+type UserWithSubs = Prisma.UserGetPayload<{
+  include: {
+    submissions: {
+      include: {
+        answers: {
+          include: { question: true };
+          orderBy: [
+            { question: { categoryOrder: "asc" } },
+            { question: { questionOrder: "asc" } },
+          ];
+        };
+      };
+      orderBy: { submittedAt: "asc" };
+    };
+  };
+}>;
 export async function GET() {
   try {
     const [users, submissions] = await Promise.all([
@@ -29,7 +45,7 @@ export async function GET() {
     ]);
 
     // ── Per-user enrichment ────────────────────────────────────────────────
-    const enriched = users.map((u) => {
+const enriched = users.map((u: UserWithSubs) => {
       const sub1 = u.submissions.find((s) => s.submissionType === "assessment1") ?? null;
       const sub2 = u.submissions.find((s) => s.submissionType === "assessment2") ?? null;
 
