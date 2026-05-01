@@ -13,6 +13,14 @@ const _notoArabic = Noto_Sans_Arabic({
   variable: "--font-arabic",
   weight: ["300", "400", "500", "600", "700"],
 });
+import { Beiruti } from "next/font/google";
+
+const beiruti = Beiruti({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-beiruti",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Family Business GRC | كرام للاستشارات",
@@ -46,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${_notoArabic.variable} ${_geist.variable} font-sans antialiased bg-background`}
+        className={` ${_geist.variable} ${beiruti.variable} font-sans antialiased bg-background`}
       >
         <LanguageProvider>{children}</LanguageProvider>
       </body>
