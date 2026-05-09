@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import {
   Users,
@@ -25,6 +25,7 @@ import {
   Activity,
   ArrowRight,
   Sparkles,
+  TableProperties,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1031,7 +1032,7 @@ export default function AdminPage() {
   const [exporting, setExporting] = useState(false);
   const [view, setView] = useState<"table" | "pipeline">("table");
   const [refreshing, setRefreshing] = useState(false);
-
+  const router = useRouter();
   async function load() {
     setRefreshing(true);
     const res = await fetch("/api/admin/stats");
@@ -1144,6 +1145,13 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push("/admin/reports")}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors"
+              >
+                <TableProperties className="w-4 h-4" />
+                Reports
+              </button>
               <button
                 onClick={load}
                 disabled={refreshing}
