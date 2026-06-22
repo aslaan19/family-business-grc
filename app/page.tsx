@@ -1,6 +1,7 @@
 "use client";
 
 import { RoadmapSection } from "./components/ui/roadmap-section";
+import { ProductsSection } from "./components/ui/products-section";
 import { useLanguage } from "../app/lib/language-context";
 import { HeroSection } from "./components/ui/hero-section";
 import { Header } from "./components/ui/Header";
@@ -16,6 +17,7 @@ export default function Home() {
         <div className="flex justify-end p-6"></div>
         <HeroSection />
         <RoadmapSection />
+        <ProductsSection />
       </main>
       <Footer />
     </>

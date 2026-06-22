@@ -178,6 +178,90 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.rights": "جميع الحقوق محفوظة",
     "footer.privacy": "سياسة الخصوصية",
     "footer.terms": "الشروط والأحكام",
+
+    // Products / Solutions
+    "products.badge": "الحلول الاحترافية",
+    "products.title": "منتجاتنا وحلولنا الاحترافية",
+    "products.subtitle":
+      "عشرون منتجاً سيادياً موزعة على أربع فئات متكاملة، مصممة لكل شركة أو مؤسسة تسعى للتحول من الإدارة التقليدية إلى الحوكمة المؤسسية المستدامة",
+    "products.stat1": "منتج سيادي",
+    "products.stat2": "فئات متكاملة",
+    "products.stat3": "إمكانيات التحول",
+
+    "products.cat1.title": "التأسيس والهوية",
+    "products.cat1.subtitle": "بناء قاعدة مؤسسية قوية ومستدامة",
+    "products.cat2.title": "السيطرة والامتثال",
+    "products.cat2.subtitle": "حماية الكيان وضبط القرار",
+    "products.cat3.title": "التحول الرقمي",
+    "products.cat3.subtitle": "حوكمة حية مبنية على البيانات",
+    "products.cat4.title": "المعرفة والاستدامة",
+    "products.cat4.subtitle": "ضمان البقاء عبر الأجيال",
+
+    // Category I — Foundation & Identity
+    "products.p1.title": "الحوكمة الاستراتيجية",
+    "products.p1.desc":
+      "تحديد الرؤية وربط الاستراتيجية بمؤشرات الأداء وتحويل الطموح إلى مسار تنفيذي واضح",
+    "products.p2.title": "صياغة الرسالة المؤسسية",
+    "products.p2.desc":
+      "تعريف سبب الوجود وبناء الهوية السيادية وتوحيد الاتجاه التنظيمي",
+    "products.p3.title": "دستور القيم",
+    "products.p3.desc":
+      "مأسسة الأخلاقيات وتعزيز ثقافة الامتثال وبناء سلوك مؤسسي منضبط",
+    "products.p4.title": "المخطط الاستراتيجي التشغيلي",
+    "products.p4.desc":
+      "ترجمة الرؤية إلى خطط تنفيذ مع مواءمة Lean و SWOT ووضوح الأولويات",
+    "products.p5.title": "الهيكلة المؤسسية",
+    "products.p5.desc":
+      "فصل الملكية عن الإدارة ووضوح الأدوار وتقليل تضارب المصالح",
+
+    // Category II — Control & Compliance
+    "products.p6.title": "مصفوفة الصلاحيات RACI",
+    "products.p6.desc":
+      "ضبط المساءلة وإنهاء ازدواجية القرار عبر تعريف واضح للأدوار",
+    "products.p7.title": "نظام الضمان المؤسسي",
+    "products.p7.desc": "حماية الأصول وتقليل المخاطر التشغيلية بشكل منهجي",
+    "products.p8.title": "إدارة المخاطر الاستباقية",
+    "products.p8.desc":
+      "سجل مخاطر ذكي والانتقال من رد الفعل إلى الوقاية والتنبؤ",
+    "products.p9.title": "الرقابة والتدقيق الداخلي",
+    "products.p9.desc": "تقارير دورية ودقة في البيانات المالية وحوكمة محكمة",
+    "products.p10.title": "الامتثال التنظيمي",
+    "products.p10.desc":
+      "مواءمة مع الأنظمة وجاهزية للجهات الرقابية بهدف صفر مخالفات",
+
+    // Category III — Digital Transformation
+    "products.p11.title": "رقمنة العمليات",
+    "products.p11.desc": "بيئة عمل لا ورقية وسرعة في اتخاذ القرار ودقة بيانات",
+    "products.p12.title": "الأمن السيبراني",
+    "products.p12.desc":
+      "حماية السيادة المعلوماتية وتقليل الاختراقات وحماية الأصول الرقمية",
+    "products.p13.title": "منصة GRC الرقمية",
+    "products.p13.desc":
+      "لوحات قيادة لحظية وحوكمة مبنية على البيانات في الوقت الفعلي",
+    "products.p14.title": "الميثاق العائلي",
+    "products.p14.desc": "إدارة انتقال السلطة واستقرار الملكية بين الأجيال",
+    "products.p15.title": "منظومة الولاء المؤسسي",
+    "products.p15.desc":
+      "تعزيز الانتماء وتقليل النزاعات الداخلية وبناء ثقافة موحدة",
+
+    // Category IV — Knowledge & Sustainability
+    "products.p16.title": "توطين المعرفة",
+    "products.p16.desc": "نقل الخبرات وبناء قيادات داخلية لاستدامة الأداء",
+    "products.p17.title": "بنك المعرفة",
+    "products.p17.desc":
+      "مرجع مؤسسي رقمي يقلّل الاعتماد على الأفراد ويحفظ التراث المعرفي",
+    "products.p18.title": "ريادة أبناء العائلة",
+    "products.p18.desc":
+      "تأهيل الورثة وتحويلهم إلى صنّاع قيمة وقادة جيل قادم",
+    "products.p19.title": "برنامج التعاقب القيادي",
+    "products.p19.desc": "إعداد الصف الثاني وضمان انتقال قيادي سلس ومدروس",
+    "products.p20.title": "الاستدامة المؤسسية",
+    "products.p20.desc": "تقرير أثر طويل المدى وعمر مؤسسي ممتد عبر الأجيال",
+
+    "products.cta.title": "جاهز لبناء منظومتك المؤسسية؟",
+    "products.cta.subtitle":
+      "ابدأ بالتقييم الأولي واكتشف المنتجات الأنسب لمرحلتك الحالية، فريقنا جاهز لمرافقتك في كل خطوة",
+    "products.cta.button": "ابدأ التقييم الآن",
   },
   en: {
     // Header
@@ -335,6 +419,97 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.rights": "All Rights Reserved",
     "footer.privacy": "Privacy Policy",
     "footer.terms": "Terms & Conditions",
+
+    // Products / Solutions
+    "products.badge": "Professional Solutions",
+    "products.title": "Our Products & Solutions",
+    "products.subtitle":
+      "Twenty sovereign products organized across four integrated categories — built for any company seeking to transition from traditional management to sustainable institutional governance.",
+    "products.stat1": "Sovereign Products",
+    "products.stat2": "Integrated Categories",
+    "products.stat3": "Transformation Paths",
+
+    "products.cat1.title": "Foundation & Identity",
+    "products.cat1.subtitle": "Build a strong, sustainable institutional base",
+    "products.cat2.title": "Control & Compliance",
+    "products.cat2.subtitle": "Protect the entity and govern decisions",
+    "products.cat3.title": "Digital Transformation",
+    "products.cat3.subtitle": "Live, data-driven governance",
+    "products.cat4.title": "Knowledge & Sustainability",
+    "products.cat4.subtitle": "Endurance across generations",
+
+    // Category I — Foundation & Identity
+    "products.p1.title": "Strategic Governance",
+    "products.p1.desc":
+      "Define the vision, align strategy with KPIs, and translate ambition into a clear execution path.",
+    "products.p2.title": "Institutional Mission Crafting",
+    "products.p2.desc":
+      "Define purpose, build a sovereign identity, and unify organizational direction.",
+    "products.p3.title": "Values Charter",
+    "products.p3.desc":
+      "Institutionalize ethics, reinforce a culture of compliance, and shape disciplined institutional conduct.",
+    "products.p4.title": "Operational Strategic Map",
+    "products.p4.desc":
+      "Translate vision into execution plans, with Lean & SWOT alignment and clear priorities.",
+    "products.p5.title": "Institutional Structuring",
+    "products.p5.desc":
+      "Separate ownership from management, clarify roles, and reduce conflicts of interest.",
+
+    // Category II — Control & Compliance
+    "products.p6.title": "RACI Authority Matrix",
+    "products.p6.desc":
+      "Lock down accountability and eliminate decision duplication through clear role mapping.",
+    "products.p7.title": "Institutional Assurance System",
+    "products.p7.desc":
+      "Protect assets and systematically reduce operational risk.",
+    "products.p8.title": "Proactive Risk Management",
+    "products.p8.desc":
+      "A smart risk register that shifts the organization from reactive to preventive and predictive.",
+    "products.p9.title": "Internal Audit & Oversight",
+    "products.p9.desc":
+      "Periodic reports, accuracy in financial data, and tightly governed controls.",
+    "products.p10.title": "Regulatory Compliance",
+    "products.p10.desc":
+      "Alignment with regulations and readiness for authorities — targeting zero violations.",
+
+    // Category III — Digital Transformation
+    "products.p11.title": "Process Digitization",
+    "products.p11.desc":
+      "A paperless environment, faster decisions, and higher data accuracy.",
+    "products.p12.title": "Cybersecurity",
+    "products.p12.desc":
+      "Protect information sovereignty, reduce breaches, and safeguard digital assets.",
+    "products.p13.title": "Digital GRC Platform",
+    "products.p13.desc":
+      "Live dashboards and data-driven governance in real time.",
+    "products.p14.title": "Family Charter",
+    "products.p14.desc":
+      "Manage power transition and stabilize ownership across generations.",
+    "products.p15.title": "Institutional Loyalty System",
+    "products.p15.desc":
+      "Strengthen belonging, reduce internal conflict, and build a unified culture.",
+
+    // Category IV — Knowledge & Sustainability
+    "products.p16.title": "Knowledge Localization",
+    "products.p16.desc":
+      "Transfer expertise and develop internal leaders for sustained performance.",
+    "products.p17.title": "Knowledge Bank",
+    "products.p17.desc":
+      "A digital institutional reference that reduces dependence on individuals.",
+    "products.p18.title": "Next-Gen Entrepreneurship",
+    "products.p18.desc":
+      "Equip heirs to become value creators and the next generation of leaders.",
+    "products.p19.title": "Leadership Succession Program",
+    "products.p19.desc":
+      "Prepare the second line and ensure a smooth, well-planned leadership transition.",
+    "products.p20.title": "Institutional Sustainability",
+    "products.p20.desc":
+      "Long-term impact reporting and an extended institutional lifespan across generations.",
+
+    "products.cta.title": "Ready to build your institutional system?",
+    "products.cta.subtitle":
+      "Start with the initial assessment and discover the products best suited to your current stage — our team is ready to walk with you at every step.",
+    "products.cta.button": "Start the Assessment",
   },
 };
 
