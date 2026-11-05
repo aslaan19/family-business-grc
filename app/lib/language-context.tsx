@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 
@@ -251,8 +252,7 @@ const translations: Record<Language, Record<string, string>> = {
     "products.p17.desc":
       "مرجع مؤسسي رقمي يقلّل الاعتماد على الأفراد ويحفظ التراث المعرفي",
     "products.p18.title": "ريادة أبناء العائلة",
-    "products.p18.desc":
-      "تأهيل الورثة وتحويلهم إلى صنّاع قيمة وقادة جيل قادم",
+    "products.p18.desc": "تأهيل الورثة وتحويلهم إلى صنّاع قيمة وقادة جيل قادم",
     "products.p19.title": "برنامج التعاقب القيادي",
     "products.p19.desc": "إعداد الصف الثاني وضمان انتقال قيادي سلس ومدروس",
     "products.p20.title": "الاستدامة المؤسسية",
@@ -524,9 +524,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    try {
+      localStorage.setItem("karam_language", lang);
+    } catch {
+      /* Storage may be unavailable. */
+    }
   }, []);
 
-  // ← add this
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("karam_language");
+        if (saved === "en" || saved === "ar") setLanguage(saved);
+      } catch {
+        /* Keep the default language. */
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [setLanguage]);
+
   const toggleLanguage = useCallback(() => {
     setLanguage(language === "ar" ? "en" : "ar");
   }, [language, setLanguage]);

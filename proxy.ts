@@ -2,7 +2,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function proxy(req: NextRequest) {
-  if (!req.nextUrl.pathname.startsWith("/admin")) {
+  if (
+    !req.nextUrl.pathname.startsWith("/admin") &&
+    !req.nextUrl.pathname.startsWith("/api/admin") &&
+    req.nextUrl.pathname !== "/api/export"
+  ) {
     return NextResponse.next();
   }
 
@@ -32,5 +36,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/export"],
 };

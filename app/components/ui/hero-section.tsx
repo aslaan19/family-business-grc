@@ -1,16 +1,7 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  AnimatePresence,
-  useScroll,
-  useInView,
-} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,

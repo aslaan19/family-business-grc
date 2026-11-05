@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:api": "tsx scripts/verify-api.ts",
+    "test:journey": "tsx scripts/verify-journey.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

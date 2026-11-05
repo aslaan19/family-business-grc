@@ -2,15 +2,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import {
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  ArrowUpRight,
-  ExternalLink,
-  Share2,
-} from "lucide-react";
+import { Mail, Phone, Globe, ArrowUpRight, ExternalLink } from "lucide-react";
 import { useLanguage } from "../../lib/language-context";
 import { cn } from "../../lib/utils";
 

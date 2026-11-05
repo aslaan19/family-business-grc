@@ -5,18 +5,18 @@ import { prisma } from "../../lib/prisma";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type AnswerInput = {
-  questionId:     string;
+  questionId: string;
   selectedLabel?: string;
-  selectedValue:  number;
-  note?:          string;
+  selectedValue: number;
+  note?: string;
 };
 
 type SubmissionBody = {
-  userId:      string;
-  totalScore:  number;
-  maxScore?:   number;
+  userId: string;
+  totalScore: number;
+  maxScore?: number;
   rawPayload?: Record<string, unknown>;
-  answers:     AnswerInput[];
+  answers: AnswerInput[];
 };
 
 // ── POST /api/submissions ────────────────────────────────────────────────────
@@ -24,22 +24,45 @@ type SubmissionBody = {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = (await req.json()) as Partial<SubmissionBody>;
-    const { userId, totalScore, maxScore, rawPayload, answers } = body;
+    const { userId, rawPayload, answers } = body;
 
-    if (!userId || totalScore === undefined || !Array.isArray(answers)) {
+    if (!userId || !Array.isArray(answers) || answers.length === 0) {
       return NextResponse.json(
         { error: "userId, totalScore, and answers are required" },
         { status: 400 },
       );
     }
 
+    const questions = (await prisma.assessmentQuestion.findMany({
+      select: { id: true },
+    })) as { id: string }[];
+    const ids = new Set(questions.map((q) => q.id));
+    if (
+      !ids.size ||
+      answers.length !== ids.size ||
+      new Set(answers.map((a) => a.questionId)).size !== ids.size ||
+      answers.some(
+        (a) => !ids.has(a.questionId) || ![0, 5, 10].includes(a.selectedValue),
+      )
+    ) {
+      return NextResponse.json(
+        { error: "A valid answer to every assessment question is required" },
+        { status: 400 },
+      );
+    }
+    const totalScore = answers.reduce((sum, a) => sum + a.selectedValue, 0);
+    const maxScore = questions.length * 10;
+
     const existing = await prisma.assessmentSubmission.findFirst({
-      where: { userId },
+      where: { userId, submissionType: "assessment1" },
     });
 
     if (existing) {
       return NextResponse.json(
-        { error: "User has already submitted an assessment", submissionId: existing.id },
+        {
+          error: "User has already submitted an assessment",
+          submissionId: existing.id,
+        },
         { status: 409 },
       );
     }
@@ -49,8 +72,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const sub = await tx.assessmentSubmission.create({
         data: {
           userId,
+          submissionType: "assessment1",
           totalScore,
-          maxScore:   maxScore  ?? null,
+          maxScore: maxScore ?? null,
           rawPayload: rawPayload ?? null,
         },
       });
@@ -58,11 +82,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (answers.length > 0) {
         await tx.assessmentAnswer.createMany({
           data: answers.map((a: AnswerInput) => ({
-            submissionId:  sub.id,
-            questionId:    a.questionId,
-            selectedLabel: a.selectedLabel ?? null,
+            submissionId: sub.id,
+            questionId: a.questionId,
+            selectedLabel:
+              a.selectedValue === 10
+                ? "yes"
+                : a.selectedValue === 5
+                  ? "partial"
+                  : "no",
             selectedValue: a.selectedValue,
-            note:          a.note          ?? null,
+            note: a.note ?? null,
           })),
         });
       }
@@ -73,7 +102,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ submission }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/submissions]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -84,11 +116,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const userId = req.nextUrl.searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId is required" },
+        { status: 400 },
+      );
     }
 
     const submission = await prisma.assessmentSubmission.findFirst({
-      where:   { userId },
+      where: { userId, submissionType: "assessment1" },
       include: { answers: true },
       orderBy: { submittedAt: "desc" },
     });
@@ -96,6 +131,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ submission: submission ?? null });
   } catch (err) {
     console.error("[GET /api/submissions]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
