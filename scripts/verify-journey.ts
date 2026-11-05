@@ -248,7 +248,7 @@ async function main() {
     );
   }
   async function english(page: Page) {
-    const btn = await page.$(".header-actions button");
+    const btn = await page.$(".header-actions button, .home-language");
     if (btn && (await btn.evaluate((e) => e.textContent))?.includes("English"))
       await btn.click();
   }
@@ -269,11 +269,8 @@ async function main() {
     await page.setViewport({ width: 1440, height: 1050 });
     await page.goto(base, { waitUntil: "networkidle0" });
     await english(page);
-    await text(page, "Built to last.");
-    assert.equal(
-      await page.$$(".journey-card.locked a").then((a) => a.length),
-      0,
-    );
+    await text(page, "Family business.");
+    assert.equal(await page.$$(".chapter.locked a").then((a) => a.length), 0);
     await page.screenshot({
       path: `${output}/home-desktop.png`,
       fullPage: true,
@@ -576,8 +573,8 @@ async function main() {
     await attach(page);
     await page.goto(base, { waitUntil: "networkidle0" });
     await english(page);
-    await page.click(".header-actions button");
-    await text(page, "أعمال راسخة.");
+    await page.click(".home-language");
+    await text(page, "حوكمة الأعمال");
     await page.screenshot({
       path: `${output}/home-arabic-desktop.png`,
       fullPage: true,
